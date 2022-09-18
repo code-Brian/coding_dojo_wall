@@ -18,3 +18,11 @@ def f_post_create():
     post.Post.create(data)
 
     return redirect('/wall')
+
+@app.route('/post/delete/<int:id>')
+def d_post_delete(id):
+    data = {
+        'id' : id
+    }
+    post.Post.delete(data)
+    return redirect('/wall')

@@ -41,6 +41,12 @@ class Post:
         return connectToMySQL('dojo_wall').query_db(query,data)
 
     @classmethod
+    def delete(cls, data:dict):
+        query = '''
+        DELETE FROM posts WHERE posts.id = %(id)s;
+        '''
+        return connectToMySQL('dojo_wall').query_db(query,data)
+    @classmethod
     def get_all(cls):
         query = '''
         SELECT * FROM posts;
@@ -104,7 +110,9 @@ class Post:
         SELECT * FROM posts
         JOIN users ON posts.user_id = users.id
         LEFT JOIN comments ON posts.id = comments.post_id
-        LEFT JOIN users AS comment_creator ON comments.user_id = comment_creator.id;
+        LEFT JOIN users AS comment_creator ON comments.user_id = comment_creator.id
+        GROUP BY posts.created_at
+        ORDER BY posts.created_at DESC;
         '''
         results = connectToMySQL('dojo_wall').query_db(query)
 
@@ -114,8 +122,6 @@ class Post:
             for row in results:
                 # create an instance of user for each post
                 one_post = cls(row)
-
-                print(f'Printing row data {row}......................................................')
 
                 # collect the user data from the row in each iteration
                 creator_data = {
