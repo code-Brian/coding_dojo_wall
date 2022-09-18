@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='/css/bootstrap/bootstrap.css')}}">
+    <title>Wall</title>
+</head>
+<body class="bg-light">
+    <div class="container bg-secondary rounded shadow">
+        <div class="row mt-5 mb-3 p-3">
+            <div class="col-7">
+                <h1>Coding Dojo Wall</h1>
+            </div>
+            <div class="col-5">
+                <ul class="list-inline ">
+                    <li class="list-inline-item fs-2">Welcome, {{ session['user_first_name'] }} {{ session['user_last_name'] }}! {{ session['user_id'] }}</li>
+                    <li class="list-inline-item fs-2"><a class="text-warning" href="/logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row border-top border-bottom p-3">
+            <!-- create new post form -->
+            <div class="col">
+                <div class="row-md-3">
+                    <h2>What's on your mind? Create a new post: </h2>
+                    {% with errors = get_flashed_messages(category_filter=["post"]) %}
+                    {% if errors %}
+                    <ul class="list-group">
+                        {% for msg in errors %}
+                        <li class="list-group-item list-group-item-danger"> {{ msg }} </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <div class="row mt-3">
+                    <form action="/post/create" method="post">
+                        <div class="row">
+                            <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                            <div class="col-md-9">
+                                <textarea class="form-control mb-3" name="content"></textarea>
+                            </div>
+                        </div>
+
+                        <input type="submit" class="btn btn-primary" value="Publish">
+
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row p-3">
+            <div class="col mb-4">
+                <h2>All Community Posts</h2>
+            </div>
+            
+            <div class="row">
+                <div class="container overflow-auto rounded bg-light py-3" style="height: 40vh;">
+                    {% for post in posts %}
+                    <div class="row-sm border-bottom py-1">
+                        <div class="col">
+                            <h3>{{ post.creator.first_name }} {{ post.creator.last_name }}</h3>
+                            <p>{{ post.content }}</p>
+                            <p class="text-muted">Posted at: {{ post.created_at.strftime('%m-%d-%Y at %H:%M') }}</p>
+                        </div>
+                        <!-- if there are comments on a post, create them on the post here -->
+                        {% for comment in post.comments %}
+                            {% if comment.creator.first_name or comment.creator.last_name or comment.content != None -%}
+                            <div class="container-sm">
+                                <div class="row border-top"
+                                    <h4>{{ comment.creator.first_name }} {{ comment.creator.last_name }}</h4>
+                                    <p class="p-0">{{ comment.content }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        <div class="col">
+                            <div class="container-sm">
+                                {% with errors = get_flashed_messages(category_filter=["comment"]) %}
+                                {% if errors %}
+                                <ul class="list-group">
+                                    {% for msg in errors %}
+                                    <li class="list-group-item list-group-item-danger mb-2"> {{ msg }} </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                {% endwith %}
+                                <form action="/comment/create/{{ post.id }}" method="post">
+                                    <input type="hidden" value="{{session['user_id']}}"name="user_id">
+                                    <div class="row">
+                                        <textarea class="form-control" name="content"></textarea>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3 ps-0">
+                                            <input class="btn btn-primary mt-2 mb-2" type="submit" value="Comment">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col d-flex justify-content-end">
+                            {% if  post.user_id == session['user_id'] %}
+                                <p><a class="btn btn-danger" href="/post/delete/{{ post.id }}">Delete Post</a></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
